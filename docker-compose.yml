@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # MongoDB with pre-loaded Sacred experiment data
+  mongodb:
+    build:
+      context: .
+      args:
+        - DB_NAME=${DB_NAME:-test_data_new}
+    container_name: mongodb-sacred
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT_HOST:-27018}:${MONGO_PORT_DOCKER:-27017}"
+    volumes:
+      - mongodb_data:/data/db
+    env_file:
+      - config.env
+    environment:
+      - MONGO_INITDB_DATABASE=${DB_NAME:-test_data_new}
+
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Omniboard web interface for Sacred experiments
+  omniboard:
+    image: vivekratnavel/omniboard
+    container_name: omniboard-sacred
+    restart: unless-stopped
+    ports:
+      - "${OMNIBOARD_PORT_HOST:-9004}:${OMNIBOARD_PORT_DOCKER:-9000}"
+    env_file:
+      - config.env
+    environment:
+      - OMNIBOARD_MONGO_URI=mongodb://mongodb:${MONGO_PORT_DOCKER:-27017}/${DB_NAME:-test_data_new}
+    command: ["omniboard", "-m", "mongodb:${MONGO_PORT_DOCKER:-27017}:${DB_NAME:-test_data_new}"]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+
+volumes:
+  mongodb_data:
+    name: mongodb_sacred_data
+
