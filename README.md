@@ -1,6 +1,11 @@
 # Sacred MongoDB Docker Environment
 
-A containerized MongoDB environment pre-loaded with Sacred experiment data, featuring Omniboard web interface for experiment visualization.
+A containerized MongoDB environm├── 📁 scripts/                # Database initialization scripts
+│   ├── restore-database.sh    # Automatic restoration script (used in Dockerfile)
+│   └── init-restore.sh        # Additional initialization
+├── 🔄 mongo_dump_restore.bat  # Atlas sync script (requires environment variables)
+├── 📱 omniboard_fast_start.bat # Local Omniboard (non-Docker, requires conda)
+└── 📄 README.md               # This documentation-loaded with Sacred experiment data, featuring Omniboard web interface for experiment visualization.
 
 ## 🚀 Quick Start
 
@@ -10,10 +15,7 @@ A containerized MongoDB environment pre-loaded with Sacred experiment data, feat
 
 ### 1. Start the Environment
 ```bash
-# Quick start (recommended)
-start.bat
-
-# Or manually with Docker Compose
+# Start with Docker Compose
 docker-compose up -d
 ```
 
@@ -43,44 +45,42 @@ http://localhost:9004
 
 | Access Type | Address | Port | Database |
 |-------------|---------|------|----------|
-| **Localhost** | `localhost` | `27018` | `test_data_new` |
-| **Network** | `YOUR_MACHINE_IP` | `27018` | `test_data_new` |
+| **Localhost** | `localhost` | `27018` | `workshop_data` |
+| **Network** | `YOUR_MACHINE_IP` | `27018` | `workshop_data` |
 
 ### **Connection Strings:**
 ```bash
 # Localhost
-mongodb://localhost:27018/test_data_new
+mongodb://localhost:27018/workshop_data
 
 # Network access
-mongodb://YOUR_MACHINE_IP:27018/test_data_new
+mongodb://YOUR_MACHINE_IP:27018/workshop_data
 ```
 
 ## 🛠️ Management Scripts
 
 | Script | Description |
 |--------|-------------|
-| `start.bat` | Start all services |
-| `stop.bat` | Stop all services |
-| `manage.bat` | Interactive management menu |
-| `mongo_dump_restore.bat` | Sync with MongoDB Atlas |
+| `mongo_dump_restore.bat` | Sync with MongoDB Atlas (requires environment variables) |
+| `omniboard_fast_start.bat` | Start Omniboard locally (non-Docker, requires conda) |
 
 ## 📁 Project Structure
 
 ```
-docker-mongodb/
+docker-mongodb-omniboard/
 ├── 📄 config.env              # Configuration (database name, ports)
-├── 🐳 docker-compose.yml      # Main orchestration file
-├── 🐳 Dockerfile              # MongoDB image with data
-├── 📁 dump-folder/            # Your database dump
-│   └── test_data_new/         # Sacred experiment data
+├── 🐳 docker-compose.yml      # Main orchestration file (MongoDB + Omniboard)
+├── 🐳 Dockerfile              # MongoDB image with pre-loaded Sacred data
+├── 📁 dump-folder/            # Database dumps
+│   ├── workshop_data/         # Current Sacred experiment data
+│   └── test_data_new/         # Alternative dataset
 ├── 📁 scripts/                # Database initialization scripts
-│   └── restore-database.sh    # Automatic restoration script
-├── 🚀 start.bat               # Quick start
-├── 🛑 stop.bat                # Quick stop  
-├── ⚙️ manage.bat              # Full management interface
-├── 🔄 mongo_dump_restore.bat  # Atlas sync script
-├── 📱 omniboard_fast_start.bat # Local Omniboard (non-Docker)
-└── 📁 archive/                # Old test files
+│   ├── restore-database.sh    # Automatic restoration script (used in Dockerfile)
+│   └── init-restore.sh        # Additional initialization
+├── ⚙️ manage.bat              # Interactive Docker management interface
+├── 🔄 mongo_dump_restore.bat  # Atlas sync script (requires environment variables)
+├── 📱 omniboard_fast_start.bat # Local Omniboard (non-Docker, requires conda)
+└── � README.md               # This documentation
 ```
 
 ## 🔧 Configuration
@@ -88,14 +88,19 @@ docker-mongodb/
 All settings are managed in `config.env`:
 
 ```env
-# Database name
-DB_NAME=test_data_new
+# Database name (current: workshop_data)
+DB_NAME=workshop_data
 
 # Host ports (what users connect to)
 MONGO_PORT_HOST=27018      # MongoDB access port
 OMNIBOARD_PORT_HOST=9004   # Omniboard web interface port
 
-# Atlas credentials (for dump/restore)
+# Docker internal ports (usually don't change)
+MONGO_PORT_DOCKER=27017
+OMNIBOARD_PORT_DOCKER=9000
+
+# Atlas credentials (for mongo_dump_restore.bat)
+# Set as environment variables, not in config.env:
 # ATLAS_USER=your_username
 # ATLAS_PASSWORD=your_password
 # ATLAS_URL=your_cluster_url
@@ -116,7 +121,7 @@ OMNIBOARD_PORT_HOST=9004   # Omniboard web interface port
 
 3. **Share with Network Users:**
    - Omniboard: `http://YOUR_IP:9004`
-   - MongoDB: `mongodb://YOUR_IP:27018/test_data_new`
+   - MongoDB: `mongodb://YOUR_IP:27018/workshop_data`
 
 ### **For Network Users:**
 
@@ -125,7 +130,7 @@ OMNIBOARD_PORT_HOST=9004   # Omniboard web interface port
    - No additional software needed
 
 2. **Direct MongoDB Access:**
-   - Use MongoDB tools with: `mongodb://HOST_MACHINE_IP:27018/test_data_new`
+   - Use MongoDB tools with: `mongodb://HOST_MACHINE_IP:27018/workshop_data`
    - Examples: MongoDB Compass, Studio 3T, mongosh
 
 ## 🔍 Troubleshooting
@@ -162,27 +167,57 @@ OMNIBOARD_PORT_HOST=9004   # Omniboard web interface port
 
 3. **Restart everything:**
    ```cmd
-   stop.bat
-   start.bat
+   docker-compose down
+   docker-compose up -d
    ```
+
+## 🎯 Docker Operations
+
+### **Start Services:**
+```cmd
+docker-compose up -d
+```
+
+### **Stop Services:**
+```cmd
+docker-compose down
+```
+
+### **View Logs:**
+```cmd
+docker-compose logs
+docker-compose logs mongodb
+docker-compose logs omniboard
+```
+
+### **Rebuild (after configuration changes):**
+```cmd
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
 
 ## 📁 Data Management
 
 ### **Backup Current Data:**
 ```cmd
-docker exec mongodb-sacred mongodump --db=test_data_new --out=/tmp/backup
+docker exec mongodb-sacred mongodump --db=workshop_data --out=/tmp/backup
 docker cp mongodb-sacred:/tmp/backup ./backup-$(date +%Y%m%d)
 ```
 
 ### **Restore from Atlas:**
 ```cmd
+# Set environment variables first:
+# set ATLAS_USER=your_username
+# set ATLAS_PASSWORD=your_password  
+# set ATLAS_URL=your_cluster_url
 mongo_dump_restore.bat
 ```
 
 ### **View Data Statistics:**
 Access MongoDB shell:
 ```cmd
-docker exec -it mongodb-sacred mongosh test_data_new
+docker exec -it mongodb-sacred mongosh workshop_data
 ```
 
 ## 🏗️ Architecture
@@ -217,16 +252,17 @@ docker exec -it mongodb-sacred mongosh test_data_new
 ## 📝 Sacred Experiment Data
 
 The container includes pre-loaded Sacred experiment data:
-- **Database:** `test_data_new`
+- **Database:** `workshop_data`
 - **Collections:** `runs`, `metrics`, `fs.files`, `fs.chunks`
 - **Web Interface:** Full experiment browsing and analysis via Omniboard
+- **Data Source:** Pre-loaded from `dump-folder/workshop_data/`
 
 ## 🆘 Support
 
 1. **Check service status:** `docker-compose ps`
 2. **View logs:** `docker-compose logs [service_name]`
-3. **Restart services:** `stop.bat && start.bat`
-4. **Reset everything:** `docker-compose down -v && start.bat`
+3. **Restart services:** `docker-compose down && docker-compose up -d`
+4. **Reset everything:** `docker-compose down -v && docker-compose up -d`
 
 ---
 
