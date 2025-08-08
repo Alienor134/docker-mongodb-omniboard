@@ -2,21 +2,20 @@
 FROM mongo:7.0
 
 # Set environment variables
-ARG DB_NAME=${DB_NAME}
+ARG DB_NAME=workshop_data
 
 ENV MONGO_INITDB_DATABASE=${DB_NAME}
 
-# Create directory for database dump
-RUN mkdir -p /docker-entrypoint-initdb.d/dump
-
-# Copy the database dump files
-COPY dump-folder/${DB_NAME}/ /docker-entrypoint-initdb.d/dump/
+# Copy the database dump files directly to init directory
+COPY dump-folder/ /docker-entrypoint-initdb.d/
 
 # Copy initialization script
 COPY scripts/restore-database.sh /docker-entrypoint-initdb.d/01-restore-database.sh
 
 # Make script executable
 RUN chmod +x /docker-entrypoint-initdb.d/01-restore-database.sh
+
+
 
 # Expose MongoDB port
 EXPOSE 27017

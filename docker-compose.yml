@@ -4,7 +4,7 @@ services:
     build:
       context: .
       args:
-        - DB_NAME=${DB_NAME:-test_data_new}
+        - DB_NAME=${DB_NAME:-workshop_data}
     container_name: mongodb-sacred
     restart: unless-stopped
     ports:
@@ -14,7 +14,7 @@ services:
     env_file:
       - config.env
     environment:
-      - MONGO_INITDB_DATABASE=${DB_NAME:-test_data_new}
+      - MONGO_INITDB_DATABASE=${DB_NAME:-workshop_data}
 
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
@@ -33,8 +33,8 @@ services:
     env_file:
       - config.env
     environment:
-      - OMNIBOARD_MONGO_URI=mongodb://mongodb:${MONGO_PORT_DOCKER:-27017}/${DB_NAME:-test_data_new}
-    command: ["omniboard", "-m", "mongodb:${MONGO_PORT_DOCKER:-27017}:${DB_NAME:-test_data_new}"]
+      - OMNIBOARD_MONGO_URI=mongodb://mongodb:${MONGO_PORT_DOCKER:-27017}/${DB_NAME:-workshop_data}
+    command: ["omniboard", "-m", "mongodb:${MONGO_PORT_DOCKER:-27017}:${DB_NAME:-workshop_data}"]
     depends_on:
       mongodb:
         condition: service_healthy
