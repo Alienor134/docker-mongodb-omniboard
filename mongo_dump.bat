@@ -38,7 +38,7 @@ if "%mongo_user%"=="" (
     echo.
     echo Press any key to return to deployment script...
     pause
-    exit /b 1
+    exit /b 2
 )
 
 if "%mongo_password%"=="" (
@@ -47,7 +47,7 @@ if "%mongo_password%"=="" (
     echo.
     echo Press any key to return to deployment script...
     pause
-    exit /b 1
+    exit /b 3
 )
 
 if "%mongo_url%"=="" (
@@ -56,7 +56,7 @@ if "%mongo_url%"=="" (
     echo.
     echo Press any key to return to deployment script...
     pause
-    exit /b 1
+    exit /b 4
 )
 
 REM Use the DB_NAME from config
@@ -74,8 +74,9 @@ mongodump --uri="%mongo_uri%" --out="dump-folder"
 if %errorlevel% neq 0 (
     echo  Dump failed
     pause
-    exit /b 1
+    exit /b 5
 ) else (
     echo Dump completed successfully!
     echo Dump saved to: dump-folder/%DB_NAME%/
+    exit /b 0
 )

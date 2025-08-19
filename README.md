@@ -64,6 +64,19 @@ mongodb://YOUR_MACHINE_IP:27018/workshop_data
 | `mongo_dump_restore.bat` | Sync with MongoDB Atlas (requires environment variables) |
 | `omniboard_fast_start.bat` | Start Omniboard locally (non-Docker, requires conda) |
 
+### mongo_dump.bat Exit Codes
+
+The `mongo_dump.bat` script returns the following exit codes to indicate error conditions:
+
+| Exit Code | Meaning |
+|-----------|---------|
+| 1 | `DB_NAME` not found in environment or config.env |
+| 2 | `ATLAS_USER` environment variable not set |
+| 3 | `ATLAS_PASSWORD` environment variable not set |
+| 4 | `ATLAS_URL` environment variable not set |
+| 5 | `mongodump` command failed |
+| 0 | Success |
+
 ## 📁 Project Structure
 
 ```
